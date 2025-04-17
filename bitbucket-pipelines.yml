@@ -1,0 +1,23 @@
+image: ubuntu:latest
+
+definitions:
+  steps:
+    - step: &build-push-docker-image
+        name: Build and push app Docker image
+        image: google/cloud-sdk:414.0.0-slim
+        oidc: true
+        script:
+          - eval $SETUP_GCP_AUTH_ANRE
+          - eval $SETUP_DOCKER_AUTH
+          - cd analytics
+          - docker build . -t ${DCKR_PACKAGE_LOCATION}/${PRJ_ARTIFACTS}/${GAR_ANRE}/timescaledb-event-streamer:${BITBUCKET_COMMIT} -f Dockerfile
+          - docker push ${DCKR_PACKAGE_LOCATION}/${PRJ_ARTIFACTS}/${GAR_ANRE}/timescaledb-event-streamer -a
+        caches:
+          - docker
+        services:
+          - docker
+
+pipelines:
+  branches:
+    pipeline:
+      - step: *build-push-docker-image
